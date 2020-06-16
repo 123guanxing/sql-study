@@ -1,0 +1,120 @@
+du -h --max-depth=1
+df -hl 查看磁盘剩余空间
+df -h 查看每个根路径的分区大小
+ps -t tty7
+sudo su
+ps -ef |grep http://localhost:8000/libs/plusGantt/calc.html |awk '{print $2}'
+
+date +'%F %T'
+
+echo `date +%Y-%m-%d_%H:%M:%S`
+
+hostname -I
+
+ls -hl file  查看文件大小
+
+find ./comment_files/ -type f | wc -l  统计文集个数
+
+docker build -t vtiger .
+
+for i in *; do mv $i ${i#test}; done; 批量重命名前缀文件
+
+docker-compose build
+
+sync命令手动清空缓冲。
+cache是高速缓存，用于CPU和内存之间的缓冲；
+buffer是I/O缓存，用于内存和硬盘的缓冲；
+
+bc scale=2; 3/8
+
+enscript -p output.ps input.txt
+ps2pdf output.ps output.pdf
+
+[Ubuntu Linux命令：查询详细的硬件信息和系统信息](http://blog.topspeedsnail.com/archives/2011)
+
+curl --insecure -u admin:admin 'https://localhost:9200/_searchguard/authinfo?pretty'
+
+ubuntu->shadowsocks
+
+字母的替换rename "s/AA/aa/" * //把文件名中的AA替换成aa
+
+d=new Date(1530489600000)
++new Date("2018-06-01 09:00:00")
+
+find删除指定时间之前的文件
+find .  -type f  -name *.log  -mtime +180  -exec rm {} \;
+解析：
+find 后面紧跟的是要查找的目录，. 表示当前目录
+-type f：指定查找对象为文件
+-name *.log：指定查找对象名称以.log结尾
+-mtime +180: 查找180天以前的老文件
+-exec rm {} \;  :执行删除命令，这句长得很奇怪，后面有个 {} \; 是必须的，也可以执行其他指令，比如ls， rm -i之类的
+
+vim: 1,$ s/str1/str2/g 用字符串 str2 替换正文中所有出现的字符串 str1 
+
+git reset --soft HEAD^   撤回commit操作，代码仍然保留
+
+dirs -v
+dirs -c
+pushd
+popd
+
+python -m SimpleHTTPServer 7777
+python -m http.server 7777
+
+ag
+
+
+./sgadmin.sh -cacert ../../../config/root-ca.pem -cert ../../../config/kibana.pem -key ../../../config/kibana.key -keypass Yj7g0YVF6mv9 -nhnv -icl -cd ../sgconfig
+
+
+google-chrome --headless --hide-scrollbars --disable-crash-reporter --screenshot=a.png  "http://192.168.99.101:2345/card?folder_id=b45cbe32843447bbaa5856daf1f0c583-30&guid=ID5A13750B-0002-E926-3135-313132323933&name=%E6%9F%B1&number=GZ1-26%28%3F%29&pid=b45cbe32843447bbaa5856daf1f0c583&position=%E6%9F%B1&project_name=%E5%AF%BC%E5%87%BA%E4%BA%8C%E7%BB%B4%E7%A0%81%E6%B5%8B%E8%AF%95&spec=H300%2A300%2A10%2A15&weight=2535.4"
+
+
+select DATE_FORMAT(activated_at, "%Y-%m"), count(*) from users where status=1 and activated_at > '2018-07' and activated_at < '2019-03'  group by DATE_FORMAT(activated_at, "%Y-%m");
+
+
+mysqldump -t -uroot -p taishan --extended-insert=FALSE > taisan-data-201904281409.sql
+
+sudo mysqldump -t -uroot -p taishan --where="created_at like '2019-04-28%'" --ignore-table=taishan.member_role_permissions  --ignore-table=taishan.migration_logs --ignore-table=taishan.project_early_warning_users  --ignore-table=taishan.project_member_member_roles --ignore-table=taishan.user_role_permissions --ignore-table=taishan.user_user_roles > taishan-data-201904281238.sql
+
+
+select count(a.creator_id) from (select creator_id from projects group by creator_id) a;
+
+
+SELECT u.name, u.phone, u.email, if(u.status=1, '已激活', '未激活') status, u.company_id, if(up.company!='', up.company, companies.name) company, up.address1, if(up.sex='0', '男', (if(up.sex='1', '女', ''))) as sex, u.created_at, if(u.status=1, u.activated_at, '') activated_at FROM users u LEFT JOIN user_profiles up on up.user_id = u.id LEFT JOIN companies on companies.id = u.company_id WHERE u.deleted_at IS NULL ORDER BY u.created_at DESC
+
+mysql --html -h 192.168.1.101 -uroot -p taishan -e "SELECT u.name, u.phone, u.email, if(u.status=1, '已激活', '未激活') status, u.company_id, if(up.company!='', up.company, companies.name) company, up.address1, if(up.sex='0', '男', (if(up.sex='1', '女', ''))) as sex, u.created_at, if(u.status=1, u.activated_at, '') activated_at FROM users u LEFT JOIN user_profiles up on up.user_id = u.id LEFT JOIN companies on companies.id = u.company_id WHERE u.deleted_at IS NULL ORDER BY u.created_at DESC" > users.html
+
+
+select users.id, users.company_id, companies.name  from users left join companies on companies.id = users.company_id LEFT JOIN oauths ON oauths.user_id = users.id where users.name='       ' and oauths.id IS NOT NULL;
+
+
+https://www.oschina.net/p/jackrabbit
+http://jackrabbit.apache.org/jcr/jackrabbit-architecture.html
+
+docker run \
+docker.elastic.co/beats/filebeat:6.5.4 \
+setup -E setup.kibana.host=192.168.99.138:5601 \
+-E output.elasticsearch.hosts=["https://192.168.99.138:9200"] \
+-E output.elasticsearch.username=admin \
+-E output.elasticsearch.password=admin \
+-E output.elasticsearch.ssl.verification_mode=none
+
+
+swagger generate spec -o ./swagger.yaml
+swagger serve -F=swagger swagger.json
+
+
+windows: kill port
+netstat -ano |findstr 14003
+tasklist|findstr 136308
+taskkill /f /t /im java.exe
+
+netstat    -ano | grep 14002
+taskkill /pid 21296 /f
+
+cat new-101-ifc.txt | awk -F ',' '{print $2}' |sort -n -r -o size.txt
+awk '{s+=$1} END {print s}' size.txt
+
+
