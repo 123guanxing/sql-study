@@ -1,0 +1,296 @@
+创建mapping
+curl -XPUT localhost:9200/taishan-dms_files -H 'Content-Type: application/json' -d '
+{
+    "mappings":{
+        "content_files":{
+            "properties":{
+                "id":{
+                    "type":"keyword",
+                    "doc_values":false
+                },
+                "project_id":{
+                    "type":"keyword",
+                    "doc_values":false
+                },
+                "project_file_id":{
+                    "type":"keyword"
+                },
+                "version_id":{
+                    "type":"keyword"
+                },
+                "uploader_id":{
+                    "type":"keyword"
+                },
+                "type":{
+                    "type":"integer"
+                },
+                "size":{
+                    "type":"long"
+                },
+                "name":{
+                    "type":"text",
+                    "analyzer":"ik_max_word",
+                    "search_analyzer":"ik_smart"
+                },
+                "file_state":{
+                    "type":"integer"
+                },
+                "thumbnail_state":{
+                    "type":"integer"
+                },
+                "created_at":{
+                    "type":"date"
+                },
+                "updated_at":{
+                    "type":"date"
+                },
+                "file_content":{
+                    "type":"text"
+                },
+                "attachment":{
+                    "properties":{
+                        "content":{
+                            "type":"text",
+                            "analyzer":"ik_max_word",
+                            "search_analyzer":"ik_smart",
+                            "term_vector":"with_positions_offsets"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}'
+
+
+curl -XPUT localhost:9200/my_index -H 'Content-Type: application/json' -d '
+{
+    "mappings":{
+        "my_type":{
+            "properties":{
+                "content":{
+                    "type":"text",
+                    "analyzer":"ik_max_word",
+                    "search_analyzer":"ik_max_word"
+                }
+            }
+        }
+    }
+}'
+
+
+
+curl -XPUT localhost:9200/taishan-dms_files/_doc/_mapping -H 'Content-Type: application/json' -d '
+{
+
+    "person" : {
+
+                       "properties" : { "my_attachment" : { "type" : "attachment"} }
+
+                    }
+
+}'
+
+创建pipeline
+curl -X PUT "localhost:9200/_ingest/pipeline/attachment" -d '{
+ "description" : "Extract attachment information",
+ "processors":[
+ {
+    "attachment":{
+        "field":"data",
+        "indexed_chars" : -1,
+        "ignore_missing":true
+     }
+ }]}'
+
+
+模糊查询
+curl 192.168.99.102:9200/taishan-dms_files/_doc/_search -H 'Content-Type: application/json' -d '
+{
+ "query": {
+   "match": {
+     "attachment.content": "问题"
+   }
+  }
+}
+' |jq
+
+
+
+精确查询
+curl localhost:9200/taishan-dms_files/_doc/_search -H 'Content-Type: application/json' -d '
+{
+ "query": {
+  "term": {
+   "attachment.content": "遗留问题"
+  }
+  }
+}
+'
+
+高亮搜索
+curl localhost:9200/taishan-dms_files/_doc/_search -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match": {
+      "attachment.content": "科学"
+    }
+   },
+   "highlight": {
+   	  "pre_tags": ["<em>"],
+   	   "post_tags": ["</em>"],
+   	  "fields": {
+   	  	"attachment.content": {
+   	  		"type": "plain"
+   	  	}
+   	  }
+   },
+   "_source": ["id", "project_id", "filename"]
+}' |jq
+
+---
+
+curl localhost:9200/taishan-dms_files/_doc/_search -H 'Content-Type: application/json' -d '
+{
+ "query": {
+   "match": {
+     "attachment.content": "问题"
+   }
+  },
+  "highlight": {
+   	  "fields": {
+   	  	"attachment.content": {}
+   	  }
+   }
+}' |jq
+
+curl localhost:9200/taishan-dms_files/_doc/_search -H 'Content-Type: application/json' -d '
+{
+ "query": {
+   "multi_match": {
+   	 "query": "问题",
+   	 "fields": [ "name", "attachment.content"]
+   }
+  },
+  "highlight": {
+   	  "fields": {
+   	  	"name": {},
+   	  	"attachment.content": {}
+   	  }
+   },
+   "_source": ["id", "project_id", "filename"]
+}' |jq
+
+
+
+curl localhost:9200/taishan-dms_files/_doc/_search -H 'Content-Type: application/json' -d '
+{
+    "query":{
+        "multi_match":{
+            "query":"管理平台",
+            "type":"phrase",
+            "fields":[
+                "name",
+                "attachment.content"
+            ]
+        }
+    },
+    "highlight":{
+        "fields":{
+            "name":{
+
+            },
+            "attachment.content":{
+
+            }
+        }
+    },
+    "_source":[
+        "id",
+        "project_id",
+        "filename"
+    ]
+}' |jq
+
+
+curl 192.168.99.101:9200/taishan_dev-content_files,taishan_dev-raw_files/_search -H 'Content-Type: application/json' -d '
+{
+    "query":{
+        "multi_match":{
+            "query":"文档",
+            "fields":[
+                "name",
+                "attachment.content"
+            ]
+        }   
+    },
+"sort":{
+            "created_at":{
+                "order":"desc"
+            }
+        },
+    "highlight":{
+        "fields":{
+            "name":{
+
+            },
+            "attachment.content":{
+
+            }
+        }
+    },
+    "_source":[
+        "id",
+        "project_id",
+        "filename",
+        "created_at"
+    ]
+}' |jq
+
+
+ curl -XGET "http://localhost:9200/taishan-dms_files/_analyze" -H 'Content-Type: application/json' -d'
+{
+     "field": "attachment.content",
+     "text": "中华人民共和国"
+}' |jq
+
+
+
+curl 192.168.99.101:9200/taishan-dms_files/_count -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match": {
+"attachment.content": "茶水间"
+   }
+ }
+}' |jq
+
+
+curl 192.168.99.101:9200/taishan-dms_files/_search -H 'Content-Type: application/json' -d '
+{
+  "query": { 
+    "bool": { 
+      "must": [
+        { "match": { "name":   "dam"        }}
+      ],
+      "filter": [ 
+        { "terms":  { "id": ["b594de7799b543d18ed265cff9233767"] }}
+      ]
+    }
+  }
+}' |jq
+
+
+curl -X GET "192.168.99.101:9200/_analyze" -H 'Content-Type: application/json' -d'
+{
+  "analyzer" : "ik_smart",
+  "text" : "中国的伟大时代来临了，欢迎参观北京大学PKU"
+}' | jq
+
+
+curl -X GET "localhost:9200/_analyze" -H 'Content-Type: application/json' -d'
+{
+  "analyzer" : "ik_smart",
+  "text" : "给排水"
+}' | jq
+

@@ -1,0 +1,85 @@
+{
+    "mappings":{
+        "my_type":{
+            "properties":{
+                "content":{
+                    "type":"text",
+                    "analyzer":"ik_max_word",
+                    "search_analyzer":"ik_max_word"
+                }
+            }
+        }
+    }
+}
+
+ curl -XGET "http://localhost:9200/my_index/_analyze" -H 'Content-Type: application/json' -d'
+{
+"field": "content",
+     "text": "中国"
+}' |jq
+
+curl -XGET "http://localhost:9200/taishan_dev-content_files/_analyze" -H 'Content-Type: application/json' -d'
+{
+  "field": "attachment.content",
+  "text": "大人物"
+}' |jq
+
+
+curl -X GET "localhost:9200/_analyze" -H 'Content-Type: application/json' -d'
+{
+  "analyzer" : "thulac",
+  "text" : "结婚的和尚未结婚的"
+}' | jq
+
+curl -X GET "localhost:9200/_analyze" -H 'Content-Type: application/json' -d'
+{
+  "analyzer" : "hanlp",
+  "text" : "苹果手机"
+}' | jq
+
+curl -X GET "192.168.99.101:9200/_analyze" -H 'Content-Type: application/json' -d'
+{
+  "analyzer" : "ik_smart",
+  "text" : "中国的伟大时代来临了，欢迎参观北京大学PKU"
+}' | jq
+
+curl -X GET "localhost:9200/_analyze" -H 'Content-Type: application/json' -d'
+{
+  "analyzer" : "ik_smart",
+  "text" : "给排水"
+}' | jq
+
+
+curl localhost:9200/taishan_dev-content_files/content_files/_search -H 'Content-Type: application/json' -d '
+{
+ "query": {
+   "match": {
+     "attachment.content": "科学"
+   }
+  },
+  "highlight": {
+   	  "fields": {
+   	  	"name": {},
+   	  	"attachment.content": {}
+   	  }
+   },
+   "_source": ["id", "project_id", "filename"]
+}
+' |jq
+
+curl 192.168.99.101:9200/taishan_dev-content_files/content_files/_search -H 'Content-Type: application/json' -d '
+{
+ "query": {
+   "match": {
+     "attachment.content": "科学"
+   }
+  },
+  "highlight": {
+   	  "fields": {
+   	  	"name": {},
+   	  	"attachment.content": {"type": "unified"}
+   	  }
+   },
+   "_source": ["id", "project_id", "filename"]
+}
+' |jq
