@@ -116,5 +116,5 @@ taskkill /pid 21296 /f
 
 cat new-101-ifc.txt | awk -F ',' '{print $2}' |sort -n -r -o size.txt
 awk '{s+=$1} END {print s}' size.txt
-
+awk '{print "test/rvt/"$0"/"$0".rvt"}' rvt_files
 
